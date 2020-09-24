@@ -1,0 +1,66 @@
+import shelve
+import numpy as np
+
+
+class sl_shelve():
+    
+    """
+    Funtion allows to store or import data using shelve
+    INPUTS:
+        ------------------------------------------------
+        filename [str]   = name of the newly generated file 
+        files            = if interested in saving data, specify files = dir()
+        glob             = specify  glob =globals()
+        n        [bool]  = if interested in saving into a new file, n = True. Default is False
+        
+    OUTPUTS:
+        ------------------------------------------------
+        new file in current working directory
+    """
+    
+    
+    def __init__(self, filename, files=[], glob=[], n =False):
+        
+        self.filename=filename
+        self.n = n       
+        self.files= files
+        self.glob=glob
+    
+  
+    def  export_shelf(self):
+    
+        
+        if self.n == True:
+            var_db = shelve.open(self.filename,'n') # 'n' for new
+        else: 
+            var_db = shelve.open(self.filename)
+            
+        
+        varbs= self.files
+        
+        ind=[a[0] != '_' for a in varbs]     
+        varbs=np.array(varbs)[ind]
+        
+        ind1=[not callable(self.glob[a]) for a in varbs]   # removing callables
+        varbs=varbs[ind1]
+       
+        for key in varbs:
+            try:
+               var_db[key] = self.glob[key]
+            except TypeError:
+                print('ERROR shelving: {0}'.format(key))
+        
+        var_db.close()
+    
+    
+    def import_shelf(self):
+    
+        
+        var_db = shelve.open(self.filename)
+        
+        for key in var_db:
+            self.glob[key]=var_db[key]
+            
+        var_db.close()
+        
+        return globals()
